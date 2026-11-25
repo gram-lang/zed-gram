@@ -17,8 +17,12 @@ jobs:
       # Full image: git for the queries check.
       image: rust:1.100-trixie
     steps:
+      # In shell: actions/checkout runs on Node, which the Rust image has not.
       - name: Checkout code
-        uses: actions/checkout@v4
+        run: |
+          git init -q .
+          git fetch -q --depth 1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" "$GITHUB_SHA"
+          git checkout -q FETCH_HEAD
 
       - name: Toolchain
         run: |
