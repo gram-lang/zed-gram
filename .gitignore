@@ -1,0 +1,4 @@
+/target
+*.wasm
+# Cloned and built by Zed when the extension is installed as a dev extension.
+/grammars

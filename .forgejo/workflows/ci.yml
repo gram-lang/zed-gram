@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Extension, queries & options
+    runs-on: docker
+    container:
+      # Full image: git for the queries check.
+      image: rust:1.100-trixie
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          rustup target add wasm32-wasip2
+          rustup component add clippy rustfmt
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --target wasm32-wasip2 -- -D warnings
+
+      - name: Tests
+        run: cargo test
+
+      - name: Build for Zed (wasm32-wasip2)
+        run: cargo build --release --target wasm32-wasip2
+
+      - name: Queries match tree-sitter-gram at the pinned rev
+        run: scripts/queries.sh --check
+
+      - name: Manifest and options
+        run: |
+          # The registry checks that extension.toml and extensions.toml agree;
+          # keep Cargo.toml on the same version.
+          ext="$(sed -n 's/^version = "\(.*\)"/\1/p' extension.toml | head -1)"
+          crate="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          [ "$ext" = "$crate" ] || { echo "extension.toml $ext, Cargo.toml $crate"; exit 1; }
+          # No preview panel in Zed: the server must be asked for no view.
+          grep -q 'json!({ "views": false })' src/lib.rs || { echo "views: false missing"; exit 1; }
+          test -f LICENSE

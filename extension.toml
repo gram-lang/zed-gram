@@ -1,0 +1,18 @@
+id = "gram"
+name = "Gram"
+version = "0.1.0"
+schema_version = 1
+authors = ["abiwab"]
+description = "Gram recipes: highlighting, outline, diagnostics, completion and formatting."
+repository = "https://github.com/gram-lang/zed-gram"
+
+[grammars.gram]
+repository = "https://github.com/gram-lang/tree-sitter-gram"
+rev = "854cfed0205a5b893aea8b8e27a238cfe7d9d716" # v0.1.0
+
+[language_servers.gram-language-server]
+name = "Gram Language Server"
+languages = ["Gram"]
+
+[language_servers.gram-language-server.language_ids]
+"Gram" = "gram"
